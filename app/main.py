@@ -1,34 +1,43 @@
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.config import settings
+from app.router import api_router  # 导入聚合后的总路由
 from .db import check_db
 
-app = FastAPI(title="Vibe Platform API")
-router = APIRouter(prefix="/api")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+# 初始化应用
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    version="0.1.0",
+    description="API for Vibe Platform"
 )
 
+# --- 1. 全局中间件配置 ---
+if settings.BACKEND_CORS_ORIGINS:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
-@router.get("/health")
-def health():
-    return {"status": "ok"}
 
-@router.post("/image")
-def health():
-    # https://picsum.photos/200/200
-    # return {"url": "https://fastly.picsum.photos/id/477/1920/1080.jpg?hmac=8V4fJHSP89AfrwJxObukCzN7UvUriZ6QbXAC6lL-zDs"}
-    return {"url": "https://fastly.picsum.photos/id/867/200/200.jpg?hmac=o_T4KIW6jPbGySRv8Em8TaP9PH_tgegfmPaYJJ394Y4"}
-    return {"url": "https://fastly.picsum.photos/id/118/1920/1080.jpg?hmac=d42KrCka0ICF4up1cFKNNipUmKDdTx_tqasvhTEmGvM"}
+# --- 2. 路由挂载 ---
+# 这一行代码就接入了所有的业务模块（User, Video, Resource 等）
+app.include_router(api_router, prefix=settings.API_V1_STR)
+# --- 3. 基础监控接口 ---
+@app.get("/api/health", tags=["Infrastructure"])
+def health_check():
+    """
+    用于 K8s 或云平台的健康检查接口
+    """
+    return {
+        "status": "up",
+        "database": check_db(),
+        "project_name": settings.PROJECT_NAME
+    }
 
-@router.get("/db")
+@app.get("/db")
 def db_health():
     return {"db": check_db()}
-
-
-app.include_router(router)
