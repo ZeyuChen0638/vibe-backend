@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.router import api_router  # 导入聚合后的总路由
-from .db import check_db
+from app.database import check_db
 
 # 初始化应用
 app = FastAPI(

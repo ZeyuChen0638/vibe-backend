@@ -1,14 +1,15 @@
 import os
 
 from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, declarative_base
 from typing import Generator
 from sqlalchemy.orm import Session
 from app.config import settings
 
 engine = create_engine(settings.DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
+# 创建数据库模型的基类
+Base = declarative_base()
 # 检查数据库是否存活
 def check_db() -> str:
     try:
