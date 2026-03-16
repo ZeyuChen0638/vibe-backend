@@ -24,14 +24,8 @@ class Book(Base):
     __tablename__ = "books"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String(120), nullable=False)
+    name: Mapped[str] = mapped_column(String(120), nullable=False, unique=True)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
-    sort_order: Mapped[int] = mapped_column(
-        Integer, nullable=False, server_default=text("0")
-    )
-    is_archived: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, server_default=text("false")
-    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=text("now()")
     )
@@ -54,11 +48,9 @@ class Note(Base):
     book_id: Mapped[int] = mapped_column(
         ForeignKey("books.id", ondelete="CASCADE"), nullable=False, index=True
     )
+    book: Mapped[Book] = relationship(back_populates="notes")
     title: Mapped[str] = mapped_column(String(200), nullable=False)
-    # 前端传来的笔记 JSON（可完整保存 block/excalidraw 等结构化内容）
-    content_json: Mapped[dict[str, Any]] = mapped_column(
-        JSON, nullable=False, default=dict
-    )
+    json_url: Mapped[str] = mapped_column(String(2048), nullable=False, unique=True)
     is_pinned: Mapped[bool] = mapped_column(
         Boolean, nullable=False, server_default=text("false")
     )
@@ -71,8 +63,6 @@ class Note(Base):
         server_default=text("now()"),
         onupdate=func.now(),
     )
-
-    book: Mapped[Book] = relationship(back_populates="notes")
     assets: Mapped[list[NoteAsset]] = relationship(
         back_populates="note", cascade="all, delete-orphan"
     )
@@ -91,15 +81,16 @@ class NoteAsset(Base):
     note_id: Mapped[int] = mapped_column(
         ForeignKey("notes.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    asset_url: Mapped[str] = mapped_column(String(2048), nullable=False)
+    note: Mapped[Note] = relationship(back_populates="assets")
+    asset_url: Mapped[str] = mapped_column(String(2048), nullable=False, unique=True, index=True)
     asset_type: Mapped[str] = mapped_column(String(20), nullable=False)
     display_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    sort_order: Mapped[int] = mapped_column(
-        Integer, nullable=False, server_default=text("0")
-    )
-    extra_json: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=text("now()")
     )
-
-    note: Mapped[Note] = relationship(back_populates="assets")
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=text("now()"),
+        onupdate=func.now(),
+    )
