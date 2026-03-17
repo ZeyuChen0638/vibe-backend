@@ -31,6 +31,14 @@
 - 一个 `Book` 对应多个 `Note`
 - 一个 `Note` 对应多个 `NoteAsset`
 
+最近一轮补充：
+- `Book` 新增了 `is_pinned`
+- `Note` 新增了 `description`
+- `/api/note/image` 现在已经改成最小可用的 multipart 上传占位接口
+  - 会接收 `UploadFile`
+  - 会把文件流读完
+  - 然后仍然返回一个写死的图片 URL
+
 ## 当前数据库状态
 
 笔记相关 ORM 模型已经写在代码里，但数据库还没有真正建表。
@@ -49,12 +57,14 @@
 - `id`
 - `name`，当前是唯一约束
 - `description`
+- `is_pinned`
 - `created_at`
 - `updated_at`
 
 ### `Note`
 - `id`
 - `book_id`
+- `description`
 - `title`
 - `json_url`
 - `is_pinned`
@@ -99,7 +109,8 @@
 - `POST /api/note/image`
 
 当前行为：
-- 返回一个写死的 Picsum 图片地址
+- 已经按 `multipart/form-data` 接收上传文件
+- 当前会先把上传文件读完，再返回一个写死的 Picsum 图片地址
 - 没有接数据库
 - 没有接上传逻辑
 - 没有接对象存储
@@ -140,7 +151,7 @@ Alembic 配置相关文件：
 - `README` 里写的是 `conda activate vibe-code`
 - `README` 里路径写的是 `/home/owen/vibe-plt/backend`
 - 实际目录是 `/home/owen/vibe-plt/vibe-backend`
-- [router.py](/home/owen/vibe-plt/vibe-backend/app/note/router.py) 里接口函数名叫 `health`，但它其实是一个假图片接口
+- `/api/note/image` 现在虽然能正确消费 multipart 上传，但仍然只是占位接口
 - [env.py](/home/owen/vibe-plt/vibe-backend/alembic/env.py) 当前只导入了 `Base`，如果后面要用 Alembic 自动生成迁移，记得确保模型模块被导入
 - 还没有 Pydantic schema
 - 还没有 CRUD service 层
@@ -168,7 +179,11 @@ Alembic 配置相关文件：
 
 - `vibe-backend` 是一个早期 FastAPI 后端，技术栈是 SQLAlchemy + Alembic + PostgreSQL
 - 笔记相关模型已经写在 [db.py](/home/owen/vibe-plt/vibe-backend/app/note/db.py)
+- `Book` 现在额外有 `is_pinned`，`Note` 现在额外有 `description`
 - 数据库当前只有 `alembic_version`，业务表还没有真正创建
 - `b28d...` 这个旧迁移文件不要再改
 - PostgreSQL 连通性和 `dev-postgres-mcp` 都已经验证通过
-- note 模块当前只有一个占位接口，返回假图片地址
+- note 模块当前只有一个最小占位上传接口：
+  - 路径是 `POST /api/note/image`
+  - 可以接收 multipart 上传
+  - 但仍然只返回假图片地址

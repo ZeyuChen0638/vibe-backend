@@ -26,6 +26,9 @@ class Book(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(120), nullable=False, unique=True)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    is_pinned: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("false")
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=text("now()")
     )
@@ -48,6 +51,7 @@ class Note(Base):
     book_id: Mapped[int] = mapped_column(
         ForeignKey("books.id", ondelete="CASCADE"), nullable=False, index=True
     )
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
     book: Mapped[Book] = relationship(back_populates="notes")
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     json_url: Mapped[str] = mapped_column(String(2048), nullable=False, unique=True)
