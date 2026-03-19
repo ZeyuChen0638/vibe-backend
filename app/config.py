@@ -6,7 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     # 1. 基本项目配置
     PROJECT_NAME: str = "Vibe Platform"
-    API_V1_STR: str = "/api"
+    API_V1_STR: str = ""
     
     # 2. 数据库配置
     # 默认值，但实际运行中应通过环境变量覆盖

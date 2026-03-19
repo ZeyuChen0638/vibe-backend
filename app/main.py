@@ -27,7 +27,7 @@ if settings.BACKEND_CORS_ORIGINS:
 # 这一行代码就接入了所有的业务模块（User, Video, Resource 等）
 app.include_router(api_router, prefix=settings.API_V1_STR)
 # --- 3. 基础监控接口 ---
-@app.get("/api/health", tags=["Infrastructure"])
+@app.get("/health", tags=["Infrastructure"])
 def health_check():
     """
     用于 K8s 或云平台的健康检查接口
