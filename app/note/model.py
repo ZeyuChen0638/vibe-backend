@@ -12,6 +12,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    UniqueConstraint,
     func,
     text,
 )
@@ -45,6 +46,9 @@ class Book(Base):
 
 class Note(Base):
     __tablename__ = "note_note"
+    __table_args__ = (
+        UniqueConstraint("book_id", "title", name="uq_note_note_book_id_title"),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     book_id: Mapped[int] = mapped_column(
