@@ -1,5 +1,8 @@
 # app/note/schema.py
 from datetime import datetime
+from typing import Any
+
+from fastapi import Form
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
@@ -81,6 +84,43 @@ class NoteCreate(BaseModel):
         return value
 
 
+class NoteUpdate(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    id: int
+    title: str | None = Field(default=None, min_length=1, max_length=200)
+    description: str | None = Field(default=None, max_length=2000)
+    is_pinned: bool | None = Field(default=None, alias="isPinned")
+
+    @field_validator("title")
+    @classmethod
+    def normalize_title_for_update(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+
+        value = value.strip()
+        if not value:
+            raise ValueError("笔记标题不能为空")
+        return value
+
+    @classmethod
+    def as_form(
+        cls,
+        id: int = Form(...),
+        title: str | None = Form(default=None),
+        description: str | None = Form(default=None),
+        is_pinned: bool | None = Form(default=None, alias="isPinned"),
+    ) -> "NoteUpdate":
+        data = {"id": id}
+        if title is not None:
+            data["title"] = title
+        if description is not None:
+            data["description"] = description
+        if is_pinned is not None:
+            data["isPinned"] = is_pinned
+        return cls(**data)
+
+
 class NoteRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -92,6 +132,10 @@ class NoteRead(BaseModel):
     is_pinned: bool
     created_at: datetime
     updated_at: datetime
+
+
+class NotePageRead(NoteRead):
+    content: Any | None = None
 
 
 class NoteListQuery(BaseModel):
