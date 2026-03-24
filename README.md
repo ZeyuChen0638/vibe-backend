@@ -5,11 +5,27 @@ FastAPI + PostgreSQL backend for Vibe Platform.
 ## Setup
 
 ```bash
-conda activate vibe-code
-cd /home/owen/vibe-plt/backend
-python -m pip install -r requirements.txt
-cp .env.example .env
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+cd /home/owen/CURA/CURA-Backend
+uv sync
+```
+
+## Commands
+
+```bash
+# 开发模式，执行 fastapi dev app
+uv run dev
+
+# 生产模式启动
+uv run start
+
+# 使用 FastAPI 官方 CLI
+uv run fastapi dev
+uv run fastapi run
+
+# 数据库迁移
+uv run db upgrade head
+uv run db revision --autogenerate -m "message"
+uv run db downgrade -1
 ```
 
 ## Endpoints
